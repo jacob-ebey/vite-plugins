@@ -1,7 +1,12 @@
 import { fileURLToPath } from "node:url";
 
 import type { DurableObject } from "@cloudflare/workers-types";
-import type { MessageEvent, WebSocket, WorkerOptions } from "miniflare";
+import type {
+  MessageEvent,
+  ReplaceWorkersTypes,
+  WebSocket,
+  WorkerOptions,
+} from "miniflare";
 import {
   Miniflare,
   Request as MiniflareRequest,
@@ -26,7 +31,7 @@ export type MinflareContainer = {
   miniflare?: Miniflare;
   miniflareReferences: number;
   webSockets: Map<string, Set<WebSocket>>;
-  workerDurableObjects: Map<string, DurableObject>;
+  workers: Map<string, ReplaceWorkersTypes<Fetcher>>;
 };
 
 class CloudflareHotChannel implements vite.HotChannel {
@@ -304,13 +309,8 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
       });
 
       for (const environment of environments) {
-        const namespace =
-          await this.#container.miniflare.getDurableObjectNamespace(
-            `__CLOUDFLARE_WORKER_RUNNER__`,
-            environment
-          );
-        const durableObject = namespace.get(namespace.idFromName(""));
-        const initResponse = await durableObject.fetch(
+        const worker = await this.#container.miniflare.getWorker(environment);
+        const initResponse = await worker.fetch(
           new URL(INIT_PATH, UNKNOWN_HOST).href,
           {
             headers: {
@@ -333,9 +333,9 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
           webSockets.delete(webSocket);
         });
 
-        this.#container.workerDurableObjects.set(
+        this.#container.workers.set(
           environment,
-          durableObject as unknown as DurableObject
+          worker as unknown as ReplaceWorkersTypes<Fetcher>
         );
       }
 
@@ -382,7 +382,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
   }
 
   async dispatchFetch(request: Request) {
-    const durableObject = this.#container.workerDurableObjects.get(this.name);
+    const durableObject = this.#container.workers.get(this.name);
     if (!durableObject) {
       throw new Error(`Durable object not found for environment ${this.name}`);
     }
@@ -405,7 +405,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
   }
 
   async dispatchMiniflareFetch(request: Request) {
-    const durableObject = this.#container.workerDurableObjects.get(this.name);
+    const durableObject = this.#container.workers.get(this.name);
     if (!durableObject) {
       throw new Error(`Durable object not found for environment ${this.name}`);
     }

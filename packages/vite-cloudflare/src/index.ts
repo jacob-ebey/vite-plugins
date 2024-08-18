@@ -18,7 +18,7 @@ export default function cloudflare({
     environments: {},
     miniflareReferences: 0,
     webSockets: new Map(),
-    workerDurableObjects: new Map(),
+    workers: new Map(),
   };
 
   return {
