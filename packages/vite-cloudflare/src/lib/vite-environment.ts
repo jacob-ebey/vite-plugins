@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 
-import type { DurableObject } from "@cloudflare/workers-types";
+import type { Fetcher } from "@cloudflare/workers-types";
 import type {
   MessageEvent,
   ReplaceWorkersTypes,
@@ -23,6 +23,7 @@ export type CloudflareDevApi = {
 };
 
 export type CloudlareEnvironmentOptions = {
+  outboundService?: (request: Request, mf: Miniflare) => Promise<Response>;
   wranglerConfig: string;
 };
 
@@ -278,6 +279,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
             ...durableObjects,
             [`__CLOUDFLARE_WORKER_RUNNER__`]: "CloudflareWorkerRunner",
           },
+          outboundService: this.#options.outboundService,
           serviceBindings: {
             ...sharedWorkerOptions.serviceBindings,
             __VITE_FETCH_MODULE__: async (request) => {

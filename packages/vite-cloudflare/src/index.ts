@@ -1,17 +1,21 @@
+import { Response as MiniflareResponse } from "miniflare";
 import * as vite from "vite";
 
 import type { MinflareContainer } from "./lib/vite-environment.js";
+import type { CloudlareEnvironmentOptions } from "./lib/vite-environment.js";
 import { createCloudflareEnvironment } from "./lib/vite-environment.js";
 
 export type { CloudflareDevEnvironment } from "./lib/vite-environment.js";
 
 export type CloudflarePluginOptions = {
   environments: string[];
+  outboundService?: CloudlareEnvironmentOptions["outboundService"];
   wranglerConfig?: string;
 };
 
 export default function cloudflare({
   environments,
+  outboundService,
   wranglerConfig = "wrangler.toml",
 }: CloudflarePluginOptions): vite.PluginOption {
   const container: MinflareContainer = {
@@ -20,6 +24,26 @@ export default function cloudflare({
     webSockets: new Map(),
     workers: new Map(),
   };
+
+  const wrappedOutboundService: CloudlareEnvironmentOptions["outboundService"] =
+    outboundService
+      ? async (request, mf) => {
+          const response = await outboundService(
+            new Request(request.url, {
+              method: request.method,
+              headers: request.headers,
+              body: request.body as any,
+              redirect: "manual",
+              duplex: request.body ? "half" : undefined,
+            } as any) as any,
+            mf
+          );
+          return new MiniflareResponse(response.body, {
+            status: response.status,
+            headers: response.headers,
+          }) as unknown as Response;
+        }
+      : undefined;
 
   return {
     name: "cloudflare",
@@ -47,7 +71,10 @@ export default function cloudflare({
                   createCloudflareEnvironment(
                     name,
                     config,
-                    { wranglerConfig },
+                    {
+                      outboundService: wrappedOutboundService,
+                      wranglerConfig,
+                    },
                     container
                   ),
               },

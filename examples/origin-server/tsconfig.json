@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext"],
+    "types": [
+      "@cloudflare/workers-types",
+      "vite/client",
+      "./worker-configuration.d.ts"
+    ],
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "isolatedModules": true,
+    "strict": true,
+    "noEmit": true
+  }
+}

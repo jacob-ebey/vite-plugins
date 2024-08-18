@@ -39,19 +39,50 @@ export class CloudflareWorkerRunner extends DurableObject<RunnerEnv> {
           throw new Error("Missing fetch handler");
         }
 
-        return handler.fetch(request, this.env, {
-          waitUntil: this.ctx.waitUntil.bind(this.ctx),
-          passThroughOnException() {},
-        });
+        let passThroughOnException = false;
+        try {
+          return await handler.fetch(request, this.env, {
+            waitUntil: this.ctx.waitUntil.bind(this.ctx),
+            passThroughOnException() {
+              passThroughOnException = true;
+            },
+          });
+        } catch (e) {
+          if (passThroughOnException) {
+            console.error(e);
+            if (e && e instanceof Error) {
+              return new Response(null, {
+                headers: {
+                  "x-vite-error-message": e.message,
+                },
+              });
+            }
+            return new Response(null, {
+              headers: {
+                "x-vite-error-message": String(e),
+              },
+            });
+          }
+          throw e;
+        }
     }
   }
 }
 
 export default {
-  fetch(request, env, ctx) {
+  async fetch(request, env, ctx) {
     const durableObject = env.__CLOUDFLARE_WORKER_RUNNER__.get(
       env.__CLOUDFLARE_WORKER_RUNNER__.idFromName("")
     );
-    return durableObject.fetch(request);
+    const response = await durableObject.fetch(request);
+
+    const errorMessage = response.headers.get("x-vite-error-message");
+    if (errorMessage) {
+      ctx.passThroughOnException();
+      const error = new Error(errorMessage);
+      throw error;
+    }
+
+    return response;
   },
 } satisfies ExportedHandler<RunnerEnv>;

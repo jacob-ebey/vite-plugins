@@ -48,8 +48,10 @@ export default defineConfig({
   },
   builder: {
     async buildApp(builder) {
-      await builder.build(builder.environments.workera);
-      await builder.build(builder.environments.workerb);
+      await Promise.all([
+        builder.build(builder.environments.workera),
+        builder.build(builder.environments.workerb),
+      ]);
     },
   },
   plugins: [
