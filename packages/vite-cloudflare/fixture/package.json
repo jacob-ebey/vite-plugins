@@ -1,0 +1,26 @@
+{
+  "name": "hello-world",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "keywords": [],
+  "author": "Jacob Ebey <jacob.ebey@live.com>",
+  "license": "ISC",
+  "scripts": {
+    "build": "vite build --app",
+    "dev": "vite dev",
+    "typegen": "wrangler types"
+  },
+  "dependencies": {
+    "hono": "4.5.5",
+    "multi-condition-example": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20240815.0",
+    "@hattip/adapter-node": "0.0.47",
+    "@jacob-ebey/vite-cloudflare-plugin": "workspace:*",
+    "typescript": "5.5.4",
+    "vite": "6.0.0-alpha.19",
+    "wrangler": "3.72.0"
+  }
+}

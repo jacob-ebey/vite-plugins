@@ -1,0 +1,23 @@
+name = "vite_cloudflare_example_hono"
+compatibility_date = "2024-04-03"
+workers_dev = true
+main = "dist/index.js"
+
+[[durable_objects.bindings]]
+name = "DO_WEBSOCKET"
+class_name = "WebSocketDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["WebSocketDurableObject"]
+
+[env.development]
+
+[[env.development.durable_objects.bindings]]
+name = "DO_WEBSOCKET"
+class_name = "WebSocketDurableObject"
+script_name = "worker"
+
+[[env.development.migrations]]
+tag = "v1"
+new_classes = ["WebSocketDurableObject"]

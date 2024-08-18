@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "multi-condition-example",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types.d.ts",
+      "a": "./a.js",
+      "b": "./b.js",
+      "c": "./c.js",
+      "default": "./index.js"
+    }
+  }
+}

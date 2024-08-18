@@ -1,0 +1,16 @@
+compatibility_date = "2024-04-03"
+
+[env.development]
+
+[[env.development.services]]
+binding = "WORKERB"
+service = "workerb"
+
+[[env.development.durable_objects.bindings]]
+name = "COUNTERS"
+class_name = "Counter"
+script_name = "counter"
+
+[[env.development.migrations]]
+tag = "v1"
+new_classes = ["Counter"]
