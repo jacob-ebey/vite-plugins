@@ -307,6 +307,11 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
       }
 
       this.#container.miniflare = new Miniflare({
+        d1Persist: true,
+        kvPersist: true,
+        r2Persist: true,
+        cachePersist: true,
+        durableObjectsPersist: true,
         workers: [...durableObjectWorkers, ...workers],
       });
 
