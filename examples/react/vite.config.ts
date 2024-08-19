@@ -1,5 +1,7 @@
 import { createMiddleware } from "@hattip/adapter-node";
-import bridge, { BuildContainer } from "@jacob-ebey/vite-bridged-assets-plugin";
+import bridge, {
+  type BuildContainer,
+} from "@jacob-ebey/vite-bridged-assets-plugin";
 import cloudflare, {
   type CloudflareDevEnvironment,
 } from "@jacob-ebey/vite-cloudflare-plugin";
@@ -66,15 +68,17 @@ export default defineConfig({
         const workerDevEnvironment = server.environments
           .worker as CloudflareDevEnvironment;
 
+        const middleware = createMiddleware(
+          (c) => {
+            return workerDevEnvironment.dispatchFetch(c.request);
+          },
+          { alwaysCallNext: false }
+        );
+
         return () => {
           server.middlewares.use((req, res, next) => {
             req.url = req.originalUrl;
-            createMiddleware(
-              (c) => {
-                return workerDevEnvironment.dispatchFetch(c.request);
-              },
-              { alwaysCallNext: false }
-            )(req, res, next);
+            middleware(req, res, next);
           });
         };
       },

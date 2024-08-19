@@ -1,11 +1,11 @@
-import { createMiddleware } from "@hattip/adapter-node";
-import * as http from "node:http";
-import { defineConfig } from "vite";
-import ws from "ws";
+import type { IncomingMessage } from "node:http";
 
+import { createMiddleware } from "@hattip/adapter-node";
 import cloudflare, {
   type CloudflareDevEnvironment,
 } from "@jacob-ebey/vite-cloudflare-plugin";
+import { defineConfig } from "vite";
+import ws from "ws";
 
 export default defineConfig({
   environments: {
@@ -38,10 +38,13 @@ export default defineConfig({
           .worker as CloudflareDevEnvironment;
 
         const wss = new ws.Server({ noServer: true });
+        if (!server.httpServer) {
+          throw new Error("Server must have an http server");
+        }
 
-        server.httpServer!.on(
+        server.httpServer.on(
           "upgrade",
-          (request: http.IncomingMessage, socket, head) => {
+          (request: IncomingMessage, socket, head) => {
             const url = new URL(request.url ?? "", "http://base.url");
             if (url.pathname === "/__vite_hmr") return;
 
@@ -56,7 +59,7 @@ export default defineConfig({
               }
             }
 
-            wss.handleUpgrade(request, socket, head, async (ws: any) => {
+            wss.handleUpgrade(request, socket, head, async (ws) => {
               const response =
                 await workerDevEnvironment.dispatchMiniflareFetch(
                   new Request(url, {
@@ -75,7 +78,7 @@ export default defineConfig({
               webSocket.addEventListener("message", (event) => {
                 ws.send(event.data);
               });
-              ws.on("message", (data: any) => {
+              ws.on("message", (data: ArrayBuffer | string) => {
                 webSocket.send(data);
               });
               ws.on("close", () => {
@@ -91,15 +94,17 @@ export default defineConfig({
           }
         );
 
+        const middleware = createMiddleware(
+          (c) => {
+            return workerDevEnvironment.dispatchFetch(c.request);
+          },
+          { alwaysCallNext: false }
+        );
+
         return () => {
           server.middlewares.use((req, res, next) => {
             req.url = req.originalUrl;
-            createMiddleware(
-              (c) => {
-                return workerDevEnvironment.dispatchFetch(c.request);
-              },
-              { alwaysCallNext: false }
-            )(req, res, next);
+            middleware(req, res, next);
           });
         };
       },

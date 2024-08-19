@@ -1,9 +1,8 @@
 import { createMiddleware } from "@hattip/adapter-node";
-import { defineConfig } from "vite";
-
 import cloudflare, {
   type CloudflareDevEnvironment,
 } from "@jacob-ebey/vite-cloudflare-plugin";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   environments: {
@@ -30,15 +29,17 @@ export default defineConfig({
         const workerDevEnvironment = server.environments
           .worker as CloudflareDevEnvironment;
 
+        const middleware = createMiddleware(
+          (c) => {
+            return workerDevEnvironment.dispatchFetch(c.request);
+          },
+          { alwaysCallNext: false }
+        );
+
         return () => {
           server.middlewares.use((req, res, next) => {
             req.url = req.originalUrl;
-            createMiddleware(
-              (c) => {
-                return workerDevEnvironment.dispatchFetch(c.request);
-              },
-              { alwaysCallNext: false }
-            )(req, res, next);
+            middleware(req, res, next);
           });
         };
       },

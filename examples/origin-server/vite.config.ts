@@ -1,9 +1,8 @@
 import { createMiddleware } from "@hattip/adapter-node";
-import { createServerModuleRunner, defineConfig } from "vite";
-
 import cloudflare, {
   type CloudflareDevEnvironment,
 } from "@jacob-ebey/vite-cloudflare-plugin";
+import { createServerModuleRunner, defineConfig } from "vite";
 
 export default defineConfig(() => {
   let serverRunner: ReturnType<typeof createServerModuleRunner>;
@@ -62,8 +61,13 @@ export default defineConfig(() => {
           const workerDevEnvironment = server.environments
             .worker as CloudflareDevEnvironment;
 
-          server.httpServer!.once("listening", () => {
-            const _address = server.httpServer!.address();
+          const httpServer = server.httpServer;
+          if (!httpServer) {
+            throw new Error("Server must have an http server");
+          }
+
+          httpServer.once("listening", () => {
+            const _address = httpServer.address();
             if (typeof _address === "string") {
               const [host, port] = _address.split(":");
               origin = `http://localhost:${port}`;
@@ -74,15 +78,17 @@ export default defineConfig(() => {
             }
           });
 
+          const middleware = createMiddleware(
+            (c) => {
+              return workerDevEnvironment.dispatchFetch(c.request);
+            },
+            { alwaysCallNext: false }
+          );
+
           return () => {
             server.middlewares.use((req, res, next) => {
               req.url = req.originalUrl;
-              createMiddleware(
-                (c) => {
-                  return workerDevEnvironment.dispatchFetch(c.request);
-                },
-                { alwaysCallNext: false }
-              )(req, res, next);
+              middleware(req, res, next);
             });
           };
         },

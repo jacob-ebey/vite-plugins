@@ -183,7 +183,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
           const environment = definition.scriptName;
           const scriptName = `__VITE_DURABLE_OBJECT__${name}__${definition.className}`;
 
-          let input =
+          const input =
             this.config.environments[environment]?.build.rollupOptions.input;
           if (typeof input !== "string") {
             throw new Error(
@@ -253,7 +253,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 
       const workers: WorkerOptions[] = [];
       for (const environment of environments) {
-        let input =
+        const input =
           this.config.environments[environment]?.build.rollupOptions.input;
         if (typeof input !== "string") {
           throw new Error(
@@ -278,7 +278,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
           ],
           durableObjects: {
             ...durableObjects,
-            [`__CLOUDFLARE_WORKER_RUNNER__`]: "CloudflareWorkerRunner",
+            __CLOUDFLARE_WORKER_RUNNER__: "CloudflareWorkerRunner",
           },
           outboundService: this.#options.outboundService,
           serviceBindings: {
@@ -453,24 +453,4 @@ export function createCloudflareEnvironment(
   container.environments[name] = environment;
 
   return environment;
-}
-
-function getDatabaseInfoFromConfig(config: any, name: string) {
-  for (const d1Database of config.d1_databases) {
-    if (
-      d1Database.database_id &&
-      (name === d1Database.database_name || name === d1Database.binding)
-    ) {
-      return {
-        uuid: d1Database.database_id,
-        previewDatabaseUuid: d1Database.preview_database_id,
-        binding: d1Database.binding,
-        name: d1Database.database_name,
-        migrationsTableName: d1Database.migrations_table || "d1_migrations",
-        migrationsFolderPath: d1Database.migrations_dir || "./migrations",
-        internal_env: d1Database.database_internal_env,
-      };
-    }
-  }
-  return null;
 }

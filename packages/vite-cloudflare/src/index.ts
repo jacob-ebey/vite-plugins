@@ -1,11 +1,13 @@
 import { Response as MiniflareResponse } from "miniflare";
 import * as vite from "vite";
 
-import type { MinflareContainer } from "./lib/vite-environment.js";
-import type { CloudlareEnvironmentOptions } from "./lib/vite-environment.js";
-import { createCloudflareEnvironment } from "./lib/vite-environment.js";
+import type {
+  CloudlareEnvironmentOptions,
+  MinflareContainer,
+} from "./lib/cloudflare-environment.js";
+import { createCloudflareEnvironment } from "./lib/cloudflare-environment.js";
 
-export type { CloudflareDevEnvironment } from "./lib/vite-environment.js";
+export type { CloudflareDevEnvironment } from "./lib/cloudflare-environment.js";
 
 export type CloudflarePluginOptions = {
   environments: string[];
