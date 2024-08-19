@@ -4,7 +4,7 @@ A collection of Vite plugins that I've created and use. Hope they help you out!
 
 ## Plugins
 
-## [@jacob-ebey/vite-cloudflare-plugin](packages/vite-cloudflare/README.md)
+## [@jacob-ebey/vite-cloudflare-plugin](packages/vite-cloudflare/README.md) (unpublished)
 
 A vite plugin that enables local development of Cloudflare Workers using Vite.
 
