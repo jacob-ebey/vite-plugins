@@ -1,6 +1,6 @@
-# Example: hono
+# Example: r2
 
-This example demonstrates using R2 bindings with Vite.
+An example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker locally with R2 bindings.
 
 ## Getting started
 

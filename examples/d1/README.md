@@ -1,6 +1,6 @@
 # Example: d1
 
-This example demonstrates using D1 bindings with Vite.
+A simple example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker locally with D1 bindings
 
 ## Getting started
 

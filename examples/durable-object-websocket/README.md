@@ -1,6 +1,6 @@
 # Example: durable-object-websocket
 
-This example demonstrates local development of a Durable Object that manages a WebSocket connection. The Durable Object is a simple chat room that broadcasts messages to all connected clients.
+An example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker locally with Durable Object bindings and WebSockets.
 
 ## Getting started
 

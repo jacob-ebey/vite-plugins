@@ -1,6 +1,6 @@
 # Example: hono
 
-This example demonstrates local development of a Hono API using Vite.
+An example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker locally with Hono.
 
 ## Getting started
 

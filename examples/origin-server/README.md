@@ -1,6 +1,6 @@
-# Example: hono
+# Example: origin-server
 
-This example demonstrates local of a worker with passthrough to a Node.js origin server.
+An example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker locally with passthrough to a Node.js origin server.
 
 ## Getting started
 
