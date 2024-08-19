@@ -41,19 +41,21 @@ export default defineConfig({
         const workerDevEnvironment = server.environments
           .worker as CloudflareDevEnvironment;
 
+        // Adapt the node request to a fetch request using hattip
+        const middleware = createMiddleware(
+          (c) => {
+            // Dispatch the fetch request to the worker environment
+            return workerDevEnvironment.dispatchFetch(c.request);
+          },
+          { alwaysCallNext: false }
+        );
+
         return () => {
           // Setup our dev server middleware
           server.middlewares.use((req, res, next) => {
             // Make sure the request URL is the original URL, vite changes "/" to "/index.html"
             req.url = req.originalUrl;
-            // Adapt the node dev server request to a fetch request using @hattip/adapter-node
-            createMiddleware(
-              (c) => {
-                // Dispatch the fetch request to the worker environment
-                return workerDevEnvironment.dispatchFetch(c.request);
-              },
-              { alwaysCallNext: false }
-            )(req, res, next);
+            middleware(req, res, next);
           });
         };
       },
