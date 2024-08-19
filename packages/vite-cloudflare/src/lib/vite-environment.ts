@@ -153,7 +153,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
     if (!this.#container.miniflare) {
       const { wranglerConfig } = this.#options;
       const miniflareOptions = unstable_getMiniflareWorkerOptions(
-        wranglerConfig,
+        path.resolve(this.config.root, wranglerConfig),
         this.config.mode
       );
 
