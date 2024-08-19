@@ -38,7 +38,7 @@ export default defineConfig({
         manifest: true,
         outDir: "dist/browser",
         rollupOptions: {
-          input: ["src/browser.tsx"],
+          input: ["src/browser.ts"],
         },
       },
     },
@@ -46,7 +46,7 @@ export default defineConfig({
       build: {
         outDir: "dist/worker",
         rollupOptions: {
-          input: "src/worker.tsx",
+          input: "src/worker.ts",
         },
       },
     },
@@ -55,10 +55,10 @@ export default defineConfig({
 });
 ```
 
-Now in your `src/worker.tsx` in this example, you can import assets from the browser environment:
+Now in your `src/worker.ts` in this example, you can import assets from the browser environment:
 
 ```tsx
-import browserEntry from "bridge:./browser.tsx";
+import browserEntry from "bridge:./browser.ts";
 // The hashed asset URL: `/assets/browser.12345678.js`
 console.log(browserEntry);
 ```
