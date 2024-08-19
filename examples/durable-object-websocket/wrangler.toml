@@ -1,7 +1,6 @@
 name = "vite_cloudflare_example_hono"
 compatibility_date = "2024-04-03"
 workers_dev = true
-main = "dist/index.js"
 
 [[durable_objects.bindings]]
 name = "DO_WEBSOCKET"

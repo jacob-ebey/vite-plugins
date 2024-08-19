@@ -1,0 +1,15 @@
+name = "vite_cloudflare_example_d1"
+compatibility_date = "2024-04-03"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "northwind-demo"
+database_id = "db" # Replace with your ID from `wrangler d1 create`
+
+[env.development]
+
+[[env.development.d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "northwind-demo"
+database_id = "development"

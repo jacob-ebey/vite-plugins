@@ -48,22 +48,24 @@ export class CloudflareWorkerRunner extends DurableObject<RunnerEnv> {
             },
           });
         } catch (e) {
-          if (passThroughOnException) {
-            console.error(e);
-            if (e && e instanceof Error) {
-              return new Response(null, {
-                headers: {
-                  "x-vite-error-message": e.message,
-                },
-              });
-            }
-            return new Response(null, {
+          if (e && e instanceof Error) {
+            return new Response(e.stack, {
               headers: {
-                "x-vite-error-message": String(e),
+                "x-vite-pass-through-on-exception": passThroughOnException
+                  ? "true"
+                  : "false",
+                "x-vite-error-message": e.message,
               },
             });
           }
-          throw e;
+          return new Response(null, {
+            headers: {
+              "x-vite-pass-through-on-exception": passThroughOnException
+                ? "true"
+                : "false",
+              "x-vite-error-message": String(e),
+            },
+          });
         }
     }
   }
@@ -76,10 +78,17 @@ export default {
     );
     const response = await durableObject.fetch(request);
 
+    const passThroughOnException =
+      response.headers.get("x-vite-pass-through-on-exception") === "true";
     const errorMessage = response.headers.get("x-vite-error-message");
-    if (errorMessage) {
+
+    if (passThroughOnException) {
       ctx.passThroughOnException();
+    }
+    if (errorMessage) {
+      const stack = await response.text();
       const error = new Error(errorMessage);
+      error.stack = stack;
       throw error;
     }
 

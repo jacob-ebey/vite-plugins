@@ -6,6 +6,31 @@ settings:
 
 importers:
 
+  examples/d1:
+    dependencies:
+      hono:
+        specifier: 4.5.5
+        version: 4.5.5
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: 4.20240815.0
+        version: 4.20240815.0
+      '@hattip/adapter-node':
+        specifier: 0.0.47
+        version: 0.0.47
+      '@jacob-ebey/vite-cloudflare-plugin':
+        specifier: workspace:*
+        version: link:../../packages/vite-cloudflare
+      typescript:
+        specifier: 5.5.4
+        version: 5.5.4
+      vite:
+        specifier: 6.0.0-alpha.19
+        version: 6.0.0-alpha.19(@types/node@22.4.0)
+      wrangler:
+        specifier: 3.72.0
+        version: 3.72.0(@cloudflare/workers-types@4.20240815.0)
+
   examples/durable-object-websocket:
     devDependencies:
       '@cloudflare/workers-types':

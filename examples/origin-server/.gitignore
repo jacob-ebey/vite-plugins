@@ -1,5 +1,4 @@
 .DS_Store
-.mf
 .wrangler
 dist
 node_modules

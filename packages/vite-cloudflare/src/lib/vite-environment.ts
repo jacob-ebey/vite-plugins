@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { Fetcher } from "@cloudflare/workers-types";
@@ -306,12 +307,20 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
         });
       }
 
+      const persistPath = path.resolve(
+        this.config.root,
+        ".wrangler",
+        "state",
+        "v3"
+      );
+      console.log({ persistPath });
+
       this.#container.miniflare = new Miniflare({
-        d1Persist: true,
-        kvPersist: true,
-        r2Persist: true,
-        cachePersist: true,
-        durableObjectsPersist: true,
+        d1Persist: path.join(persistPath, "d1"),
+        kvPersist: path.join(persistPath, "kv"),
+        r2Persist: path.join(persistPath, "r2"),
+        cachePersist: path.join(persistPath, "cache"),
+        durableObjectsPersist: path.join(persistPath, "do"),
         workers: [...durableObjectWorkers, ...workers],
       });
 
@@ -445,4 +454,24 @@ export function createCloudflareEnvironment(
   container.environments[name] = environment;
 
   return environment;
+}
+
+function getDatabaseInfoFromConfig(config: any, name: string) {
+  for (const d1Database of config.d1_databases) {
+    if (
+      d1Database.database_id &&
+      (name === d1Database.database_name || name === d1Database.binding)
+    ) {
+      return {
+        uuid: d1Database.database_id,
+        previewDatabaseUuid: d1Database.preview_database_id,
+        binding: d1Database.binding,
+        name: d1Database.database_name,
+        migrationsTableName: d1Database.migrations_table || "d1_migrations",
+        migrationsFolderPath: d1Database.migrations_dir || "./migrations",
+        internal_env: d1Database.database_internal_env,
+      };
+    }
+  }
+  return null;
 }

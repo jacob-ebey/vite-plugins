@@ -1,7 +1,6 @@
-name = "vite_cloudflare_example_hono"
+name = "vite_cloudflare_example_r2"
 compatibility_date = "2024-04-03"
 workers_dev = true
-main = "dist/index.js"
 
 [[r2_buckets]]
 binding = 'MY_BUCKET' # can be any valid JavaScript variable name
