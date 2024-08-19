@@ -7,6 +7,7 @@
     "build": "vite build --app",
     "dev": "vite dev",
     "seed-development": "wrangler d1 execute DB --file ./data/northwind.sql --local -c wrangler.toml --env development",
+    "test": "node --no-warnings --import tsimp/import --test integration.spec.ts",
     "typegen": "wrangler types"
   },
   "dependencies": {
@@ -16,6 +17,8 @@
     "@cloudflare/workers-types": "4.20240815.0",
     "@hattip/adapter-node": "0.0.47",
     "@jacob-ebey/vite-cloudflare-plugin": "workspace:*",
+    "execa": "9.3.1",
+    "tsimp": "2.0.11",
     "typescript": "5.5.4",
     "vite": "6.0.0-alpha.19",
     "wrangler": "3.72.0"

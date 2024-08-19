@@ -313,7 +313,6 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
         "state",
         "v3"
       );
-      console.log({ persistPath });
 
       this.#container.miniflare = new Miniflare({
         d1Persist: path.join(persistPath, "d1"),
