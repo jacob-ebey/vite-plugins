@@ -1,6 +1,6 @@
 # Example: react
 
-An example of using the `@jacob-ebey/vite-cloudflare-plugin` to develop a Cloudflare Worker with React.
+An example of using the `@jacob-ebey/vite-cloudflare-plugin` and `@jacob-ebey/vite-bridged-assets-plugin` to develop a Cloudflare Worker with React.
 
 ## Getting started
 
