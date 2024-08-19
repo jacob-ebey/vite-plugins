@@ -10,6 +10,7 @@
       "b": "./b.js",
       "c": "./c.js",
       "default": "./index.js"
-    }
+    },
+    "./package.json": "./package.json"
   }
 }

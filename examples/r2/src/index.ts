@@ -1,5 +1,5 @@
 export default {
-  async fetch(request, env): Promise<Response> {
+  async fetch(request, env, c): Promise<Response> {
     const url = new URL(request.url);
     const key = url.pathname.slice(1);
 

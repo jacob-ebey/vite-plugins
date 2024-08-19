@@ -42,13 +42,18 @@ export class CloudflareModuleRunner extends ModuleRunner {
       },
       {
         async runInlinedModule(context, transformed, id) {
-          const codeDefinition = `'use strict';async (${Object.keys(
-            context
-          ).join(",")})=>{{`;
-          const code = `${codeDefinition}${transformed}\n}}`;
-          const fn = env.__VITE_UNSAFE_EVAL__.eval(code, id);
-          await fn(...Object.values(context));
-          Object.freeze(context.__vite_ssr_exports__);
+          try {
+            const codeDefinition = `'use strict';async (${Object.keys(
+              context
+            ).join(",")})=>{{`;
+            const code = `${codeDefinition}${transformed}\n}}`;
+            const fn = env.__VITE_UNSAFE_EVAL__.eval(code, id);
+            await fn(...Object.values(context));
+            Object.freeze(context.__vite_ssr_exports__);
+          } catch (e) {
+            console.error("Error running module:", id, e);
+            throw e;
+          }
         },
         async runExternalModule(file) {
           return import(file);
