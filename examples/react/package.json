@@ -6,7 +6,6 @@
   "scripts": {
     "build": "vite build --app",
     "dev": "vite dev",
-    "test": "node --no-warnings --import tsimp/import --test integration.spec.ts",
     "preview": "wrangler pages dev dist/browser",
     "typegen": "wrangler types"
   },
