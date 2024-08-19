@@ -27,6 +27,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "4.20240815.0",
     "@types/node": "22.4.0",
+    "execa": "9.3.1",
     "tsimp": "2.0.11",
     "tsup": "8.2.4",
     "typescript": "5.5.4",
