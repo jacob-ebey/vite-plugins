@@ -3,7 +3,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "changeset": "changeset",
-    "ci:publish": "pnpm publish -r",
+    "ci:publish": "pnpm publish -r --access public",
     "test": "pnpm --parallel test"
   },
   "devDependencies": {
