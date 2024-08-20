@@ -1,6 +1,14 @@
 name: ci
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:
