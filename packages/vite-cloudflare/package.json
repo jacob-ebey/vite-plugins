@@ -6,6 +6,10 @@
   "keywords": [],
   "author": "Jacob Ebey <jacob.ebey@live.com>",
   "license": "ISC",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
