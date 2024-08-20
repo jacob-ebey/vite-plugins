@@ -1,4 +1,4 @@
-name: main
+name: Release
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  build:
+  release:
     runs-on: macos-13
 
     steps:
@@ -30,5 +30,13 @@ jobs:
       - name: Build
         run: pnpm -r build
 
-      - name: Run tests
-        run: pnpm -r test
+      - name: Create Release Pull Request or Publish to NPM
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          commit: "chore: update versions"
+          title: "chore: update versions"
+          publish: pnpm ci:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

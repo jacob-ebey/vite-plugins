@@ -1,5 +1,6 @@
 {
-  "name": "hello-world",
+  "private": true,
+  "name": "@fixture/vite-cloudflare-plugin",
   "version": "0.0.0",
   "type": "module",
   "description": "",
