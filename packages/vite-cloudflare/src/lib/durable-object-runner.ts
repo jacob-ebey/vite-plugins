@@ -48,13 +48,16 @@ export class CloudflareDurableObjectRunner extends DurableObject<RunnerEnv> {
 
     return new Proxy(this, {
       get: (_, p, reciever) => {
-        if (proxyKeys.has(p as string)) {
+        if (
+          proxyKeys.has(p as string) &&
+          typeof (this.#instance as any)[p] === "function"
+        ) {
           return async (...args: any[]) => {
             const instance = await this.#getLatestInstance();
             return (instance as any)[p](...args);
           };
         }
-        return undefined;
+        return (this.#instance as any)[p];
       },
     });
   }
@@ -63,7 +66,13 @@ export class CloudflareDurableObjectRunner extends DurableObject<RunnerEnv> {
     const DurableClass = await getLatestClass();
     if (this.#DurableClass !== DurableClass) {
       this.#DurableClass = DurableClass;
-      this.#instance = new DurableClass(this.ctx, this.env);
+      const newInstance = new DurableClass(this.ctx, this.env);
+      for (const key of Object.getOwnPropertyNames(this.#instance)) {
+        if (typeof (this.#instance as any)[key] === "function") {
+          newInstance[key] = (this.#instance as any)[key];
+        }
+      }
+      this.#instance = newInstance;
     }
     return this.#instance;
   }
