@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build --app",
     "dev": "vite dev",
+    "test": "bash test.bash",
     "typegen": "wrangler types"
   },
   "devDependencies": {
