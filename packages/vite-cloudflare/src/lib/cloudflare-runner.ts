@@ -47,7 +47,7 @@ export class CloudflareModuleRunner extends ModuleRunner {
               context
             ).join(",")})=>{{`;
             const code = `${codeDefinition}${transformed}\n}}`;
-            const fn = env.__VITE_UNSAFE_EVAL__.eval(code, id);
+            const fn = env.__VITE_UNSAFE_EVAL__.eval(code, id) as Function;
             await fn(...Object.values(context));
             Object.freeze(context.__vite_ssr_exports__);
           } catch (e) {

@@ -13,7 +13,7 @@ export class CloudflareWorkerRunner extends DurableObject<RunnerEnv> {
     const url = new URL(request.url);
 
     switch (url.pathname) {
-      case INIT_PATH:
+      case INIT_PATH: {
         if (this.#runner) {
           throw new Error("Runner already initialized");
         }
@@ -27,7 +27,8 @@ export class CloudflareWorkerRunner extends DurableObject<RunnerEnv> {
         this.#runner = new CloudflareModuleRunner(this.env, pair[0]);
 
         return new Response(null, { status: 101, webSocket: pair[1] });
-      default:
+      }
+      default: {
         if (!this.#entry || !this.#runner) {
           throw new Error("Runner not initialized");
         }
@@ -67,6 +68,7 @@ export class CloudflareWorkerRunner extends DurableObject<RunnerEnv> {
             },
           });
         }
+      }
     }
   }
 }

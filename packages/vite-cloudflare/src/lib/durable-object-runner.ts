@@ -27,7 +27,9 @@ async function getLatestClass() {
     throw new Error("Missing runner");
   }
   const mod = await runner.import(entry);
-  return (DurableClass = mod[durableClass]);
+  DurableClass = mod[durableClass];
+
+  return DurableClass;
 }
 
 export class CloudflareDurableObjectRunner extends DurableObject<RunnerEnv> {
@@ -47,29 +49,31 @@ export class CloudflareDurableObjectRunner extends DurableObject<RunnerEnv> {
     proxyKeys.delete("constructor");
 
     return new Proxy(this, {
-      get: (_, p, reciever) => {
-        if (
-          proxyKeys.has(p as string) &&
-          typeof (this.#instance as any)[p] === "function"
-        ) {
-          return async (...args: any[]) => {
+      get: (_, prop, reciever) => {
+        const key = prop as keyof CloudflareDurableObjectRunner;
+        if (proxyKeys.has(key) && typeof this.#instance[key] === "function") {
+          return async (...args: unknown[]) => {
             const instance = await this.#getLatestInstance();
-            return (instance as any)[p](...args);
+            return (instance[key] as Function).call(instance, ...args);
           };
         }
-        return (this.#instance as any)[p];
+        return this.#instance[key];
       },
     });
   }
 
   async #getLatestInstance() {
     const DurableClass = await getLatestClass();
+    if (!DurableClass) throw new Error("Durable class not loaded");
+
     if (this.#DurableClass !== DurableClass) {
       this.#DurableClass = DurableClass;
       const newInstance = new DurableClass(this.ctx, this.env);
-      for (const key of Object.getOwnPropertyNames(this.#instance)) {
-        if (typeof (this.#instance as any)[key] === "function") {
-          newInstance[key] = (this.#instance as any)[key];
+      for (const p in this.#instance) {
+        const key = p as keyof CloudflareDurableObjectRunner;
+        if (typeof this.#instance[key] === "function") {
+          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+          (newInstance as any)[key] = this.#instance[key];
         }
       }
       this.#instance = newInstance;
