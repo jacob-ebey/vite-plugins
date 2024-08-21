@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-cloudflare-plugin
 
+## 0.0.3
+
+### Patch Changes
+
+- [#6](https://github.com/jacob-ebey/vite-plugins/pull/6) [`4dfc413`](https://github.com/jacob-ebey/vite-plugins/commit/4dfc4139602e134e905d6f4c4ff70d9ac59d7fdc) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - better proxy the DO properties
+
 ## 0.0.2
 
 ### Patch Changes
