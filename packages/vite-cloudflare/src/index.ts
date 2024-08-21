@@ -34,10 +34,13 @@ export default function cloudflare({
             new Request(request.url, {
               method: request.method,
               headers: request.headers,
-              body: request.body as any,
+              body: request.body,
               redirect: "manual",
               duplex: request.body ? "half" : undefined,
-            } as any) as any,
+            } as RequestInit & {
+              duplex?: "half";
+              // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+            }) as any,
             mf
           );
           return new MiniflareResponse(response.body, {

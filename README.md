@@ -4,11 +4,11 @@ A collection of Vite plugins that I've created and use. Hope they help you out!
 
 ## Plugins
 
-## [@jacob-ebey/vite-cloudflare-plugin](packages/vite-cloudflare/README.md) (unpublished)
+## [@jacob-ebey/vite-cloudflare-plugin](packages/vite-cloudflare/README.md)
 
 A vite plugin that enables local development of Cloudflare Workers using Vite.
 
-## [@jacob-ebey/vite-bridged-assets-plugin](packages/vite-bridged-assets/README.md) (unpublished)
+## [@jacob-ebey/vite-bridged-assets-plugin](packages/vite-bridged-assets/README.md)
 
 A vite plugin that enables server environments to import asset URLs from the browser environment.
 

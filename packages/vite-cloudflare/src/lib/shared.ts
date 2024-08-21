@@ -8,6 +8,6 @@ export interface RunnerEnv {
   };
   __VITE_ROOT__: string;
   __VITE_UNSAFE_EVAL__: {
-    eval: (code: string, filename?: string) => any;
+    eval: (code: string, filename?: string) => unknown;
   };
 }

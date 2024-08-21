@@ -52,7 +52,7 @@ class CloudflareHotChannel implements vite.HotChannel {
     payload?: vite.InferCustomEventPayload<T>
   ): void;
   send(...args: unknown[]): void {
-    let payload: any;
+    let payload: unknown;
     if (typeof args[0] === "string") {
       payload = {
         type: "custom",
@@ -62,10 +62,10 @@ class CloudflareHotChannel implements vite.HotChannel {
     } else {
       payload = args[0];
     }
-    payload = JSON.stringify(payload);
+    const serialized = JSON.stringify(payload);
     const sockets = this.#container.webSockets.get(this.#name) ?? [];
     for (const socket of sockets) {
-      socket.send(payload);
+      socket.send(serialized);
     }
   }
 
@@ -74,7 +74,7 @@ class CloudflareHotChannel implements vite.HotChannel {
     listener: (
       data: vite.InferCustomEventPayload<T>,
       client: vite.HotChannelClient,
-      ...args: any[]
+      ...args: unknown[]
     ) => void
   ): void;
   on(event: "connection", listener: () => void): void;
@@ -406,16 +406,17 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
       new MiniflareRequest(request.url, {
         method: request.method,
         headers: request.headers,
-        body: request.body as any,
+        body: request.body,
         redirect: "manual",
         duplex: "half",
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       }) as any
     );
 
-    return new Response(res.body as any, {
+    return new Response(res.body as BodyInit, {
       status: res.status,
       statusText: res.statusText,
-      headers: res.headers as any,
+      headers: res.headers as unknown as Headers,
     });
   }
 
@@ -429,9 +430,10 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
       new MiniflareRequest(request.url, {
         method: request.method,
         headers: request.headers,
-        body: request.body as any,
+        body: request.body,
         redirect: "manual",
         duplex: "half",
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       }) as any
     ) as unknown as Promise<MiniflareResponse>;
   }
