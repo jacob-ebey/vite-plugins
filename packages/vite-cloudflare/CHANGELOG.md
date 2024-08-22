@@ -1,5 +1,13 @@
 # @jacob-ebey/vite-cloudflare-plugin
 
+## 0.0.4
+
+### Patch Changes
+
+- [#8](https://github.com/jacob-ebey/vite-plugins/pull/8) [`dd64943`](https://github.com/jacob-ebey/vite-plugins/commit/dd64943684b955223cfb9997299cdbf9334d396c) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - general code cleanup
+
+- [#10](https://github.com/jacob-ebey/vite-plugins/pull/10) [`37fee1e`](https://github.com/jacob-ebey/vite-plugins/commit/37fee1ec372b106bc5a6556ec5fd6479f1a6e602) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - try to emulate a CJS env module, exports, and require
+
 ## 0.0.3
 
 ### Patch Changes
