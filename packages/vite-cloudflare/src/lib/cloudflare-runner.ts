@@ -84,7 +84,7 @@ export class CloudflareModuleRunner extends ModuleRunner {
               Object.freeze(context.__vite_ssr_exports__);
             } catch (e2) {
               console.error("Error running module:", id, e, e2);
-              throw e2;
+              throw e;
             }
           }
         },
