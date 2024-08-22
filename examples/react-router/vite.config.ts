@@ -38,7 +38,7 @@ export default defineConfig({
     ssr: {
       build: {
         rollupOptions: {
-          input: "src/worker.ts",
+          input: "app/entry.worker.ts",
         },
       },
     },

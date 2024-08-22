@@ -7,7 +7,7 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "preview": "wrangler pages dev build/client",
-    "typegen": "wrangler types"
+    "typegen": "wrangler types --env development"
   },
   "dependencies": {
     "@react-router/cloudflare": "0.0.0-nightly-a5f191b5e-20240820",

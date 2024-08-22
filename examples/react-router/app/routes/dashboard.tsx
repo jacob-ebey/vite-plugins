@@ -6,9 +6,9 @@ import type {
 } from "react-router";
 import {
   Form,
-  unstable_data as data,
   redirect,
   useActionData,
+  useLoaderData,
   useNavigation,
 } from "react-router";
 
@@ -19,49 +19,54 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export function loader({
+export async function loader({
   context: { session },
 }: LoaderFunctionArgs<AppLoadContext>) {
-  if (session) {
-    throw redirect("/dashboard");
+  if (!session) {
+    throw redirect("/");
   }
 
-  return null;
+  const profile = await session.getUserProfile();
+
+  return { profile };
 }
 
 export async function action({
   request,
-  context: { cookieSession },
+  context: { session },
 }: ActionFunctionArgs<AppLoadContext>) {
-  const body = new URLSearchParams(await request.text());
-  const email = body.get("email");
-  const password = body.get("password");
-
-  if (!email || !password) {
-    return data({
-      error: "Email and password are required",
-    });
+  if (!session) {
+    throw redirect("/");
   }
 
-  // Normally you would validate the email and password
-  // and then check if the user exists in your database
-  // and if the password matches the hashed password,
-  // but for this example we'll just assume the user
-  // exists and the password is correct.
-  cookieSession.set("userId", email);
-  throw redirect("/dashboard");
+  const body = new URLSearchParams(await request.text());
+  const name = body.get("name");
+
+  if (!name) {
+    return {
+      error: "Name is required",
+    };
+  }
+
+  await session.setUserProfile({ name });
+
+  return null;
 }
 
-export default function Index() {
+export default function Dashboard() {
+  const { profile } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { error } =
-    (useActionData() as Awaited<ReturnType<typeof action>>["data"]) ?? {};
+    (useActionData() as Awaited<ReturnType<typeof action>>) ?? {};
 
   const navigation = useNavigation();
   const pending = navigation.state !== "idle";
 
   return (
     <main>
-      <h2>Login</h2>
+      <h2>Dashboard</h2>
+      <p>Welcome to your dashboard!</p>
+
+      <h3>Profile</h3>
       <Form
         method="POST"
         onSubmit={(event) => {
@@ -71,25 +76,13 @@ export default function Index() {
         }}
       >
         <label>
-          Email
+          Full Name
           <input
-            type="email"
-            name="email"
+            type="text"
+            name="name"
             required
             autoComplete="off"
-            // autoComplete="current-email"
-          />
-        </label>
-
-        <label>
-          Password
-          <input
-            type="password"
-            id="password"
-            name="password"
-            autoComplete="off"
-            // autoComplete="current-password"
-            required
+            defaultValue={profile.name}
           />
         </label>
 

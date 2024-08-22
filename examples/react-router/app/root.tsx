@@ -1,6 +1,8 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
-export default function App() {
+import "./styles.css";
+
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -10,10 +12,18 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <header>
+          <h1>React Router ❤️ Cloudflare</h1>
+          <p>The power of the modern web at your fingertips.</p>
+        </header>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
   );
+}
+
+export default function App() {
+  return <Outlet />;
 }

@@ -4,21 +4,24 @@ workers_dev = true
 
 [env.production]
 
-[[durable_objects.bindings]]
+[[env.production.durable_objects.bindings]]
 name = "DO_SESSION"
-class_name = "Session"
+class_name = "SessionDurableObject"
 
-[[migrations]]
+[[env.production.migrations]]
 tag = "v1"
-new_classes = ["Session"]
+new_classes = ["SessionDurableObject"]
 
 [env.development]
 
+[env.development.vars]
+SESSION_SECRET = "super-secret"
+
 [[env.development.durable_objects.bindings]]
 name = "DO_SESSION"
-class_name = "Session"
+class_name = "SessionDurableObject"
 script_name = "ssr"
 
 [[env.development.migrations]]
 tag = "v1"
-new_classes = ["Session"]
+new_classes = ["SessionDurableObject"]
