@@ -20,7 +20,10 @@ export const meta: MetaFunction = () => {
 };
 
 export function loader({
-  context: { session },
+  context: {
+    // session is our durable object stub
+    session,
+  },
 }: LoaderFunctionArgs<AppLoadContext>) {
   if (session) {
     throw redirect("/dashboard");

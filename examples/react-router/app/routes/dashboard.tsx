@@ -15,12 +15,15 @@ import {
 export const meta: MetaFunction = () => {
   return [
     { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { name: "description", content: "Welcome to your dashboard!" },
   ];
 };
 
 export async function loader({
-  context: { session },
+  context: {
+    // session is our durable object stub
+    session,
+  },
 }: LoaderFunctionArgs<AppLoadContext>) {
   if (!session) {
     throw redirect("/");
@@ -33,7 +36,10 @@ export async function loader({
 
 export async function action({
   request,
-  context: { session },
+  context: {
+    // session is our durable object stub
+    session,
+  },
 }: ActionFunctionArgs<AppLoadContext>) {
   if (!session) {
     throw redirect("/");
