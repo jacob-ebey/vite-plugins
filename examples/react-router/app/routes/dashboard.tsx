@@ -99,7 +99,7 @@ export default function Dashboard() {
         )}
 
         <button type="submit" disabled={pending}>
-          {pending ? "Loading..." : "Login"}
+          {pending ? "Saving..." : "Save"}
         </button>
       </Form>
     </main>

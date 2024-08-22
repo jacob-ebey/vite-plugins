@@ -71,7 +71,7 @@ export class CloudflareDurableObjectRunner extends DurableObject<RunnerEnv> {
       const newInstance = new DurableClass(this.ctx, this.env);
       for (const p in this.#instance) {
         const key = p as keyof CloudflareDurableObjectRunner;
-        if (typeof this.#instance[key] === "function") {
+        if (typeof this.#instance[key] !== "function") {
           // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           (newInstance as any)[key] = this.#instance[key];
         }
