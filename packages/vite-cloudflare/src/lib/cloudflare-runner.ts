@@ -51,8 +51,41 @@ export class CloudflareModuleRunner extends ModuleRunner {
             await fn(...Object.values(context));
             Object.freeze(context.__vite_ssr_exports__);
           } catch (e) {
-            console.error("Error running module:", id, e);
-            throw e;
+            try {
+              // try our best to emulate a CJS environment
+              const require = (requireId: string) => {
+                let resolved = requireId;
+                if (requireId.startsWith(".")) {
+                  const url = new URL(id, "http://localhost");
+                  resolved =
+                    url.pathname.split("/").slice(0, -1).join("/") +
+                    requireId.slice(1);
+                }
+                return context.__vite_ssr_import__(resolved);
+              };
+
+              const codeDefinition = `'use strict';async (module, exports, require, ${Object.keys(
+                context
+              ).join(",")})=>{{`;
+              const mod = { exports: {} };
+              const code = `${codeDefinition}${transformed.replace(
+                /require\(/,
+                "await require("
+              )}\n}}`;
+              const fn = env.__VITE_UNSAFE_EVAL__.eval(code, id) as Function;
+              await fn(
+                mod,
+                context.__vite_ssr_exports__,
+                require,
+                ...Object.values(context)
+              );
+              mod.exports = await mod.exports;
+              Object.assign(context.__vite_ssr_exports__, mod.exports);
+              Object.freeze(context.__vite_ssr_exports__);
+            } catch (e2) {
+              console.error("Error running module:", id, e, e2);
+              throw e2;
+            }
           }
         },
         async runExternalModule(file) {

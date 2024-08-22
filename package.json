@@ -14,6 +14,9 @@
   "pnpm": {
     "overrides": {
       "vite": "6.0.0-alpha.19"
+    },
+    "patchedDependencies": {
+      "@react-router/dev@0.0.0-nightly-a5f191b5e-20240820": "patches/@react-router__dev@0.0.0-nightly-a5f191b5e-20240820.patch"
     }
   }
 }

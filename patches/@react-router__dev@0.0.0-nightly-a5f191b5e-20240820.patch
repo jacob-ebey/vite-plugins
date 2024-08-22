@@ -1,0 +1,51 @@
+diff --git a/dist/vite/plugin.js b/dist/vite/plugin.js
+index 953b9d8d543391383f76a2a9f7c89b3f7419c062..33c8f9b556f08dc5a062e1875de0fdf22736767b 100644
+--- a/dist/vite/plugin.js
++++ b/dist/vite/plugin.js
+@@ -743,26 +743,26 @@ const reactRouterVitePlugin = _config => {
+           }
+         }
+       });
+-      return () => {
+-        // Let user servers handle SSR requests in middleware mode,
+-        // otherwise the Vite plugin will handle the request
+-        if (!viteDevServer.config.server.middlewareMode) {
+-          viteDevServer.middlewares.use(async (req, res, next) => {
+-            try {
+-              let build = await viteDevServer.ssrLoadModule(serverBuildId);
+-              let handler = reactRouter.createRequestHandler(build, "development");
+-              let nodeHandler = async (nodeReq, nodeRes) => {
+-                let req = nodeAdapter.fromNodeRequest(nodeReq);
+-                let res = await handler(req, await reactRouterDevLoadContext(req));
+-                await nodeAdapter.toNodeRequest(res, nodeRes);
+-              };
+-              await nodeHandler(req, res);
+-            } catch (error) {
+-              next(error);
+-            }
+-          });
+-        }
+-      };
++      // return () => {
++      //   // Let user servers handle SSR requests in middleware mode,
++      //   // otherwise the Vite plugin will handle the request
++      //   if (!viteDevServer.config.server.middlewareMode) {
++      //     viteDevServer.middlewares.use(async (req, res, next) => {
++      //       try {
++      //         let build = await viteDevServer.ssrLoadModule(serverBuildId);
++      //         let handler = reactRouter.createRequestHandler(build, "development");
++      //         let nodeHandler = async (nodeReq, nodeRes) => {
++      //           let req = nodeAdapter.fromNodeRequest(nodeReq);
++      //           let res = await handler(req, await reactRouterDevLoadContext(req));
++      //           await nodeAdapter.toNodeRequest(res, nodeRes);
++      //         };
++      //         await nodeHandler(req, res);
++      //       } catch (error) {
++      //         next(error);
++      //       }
++      //     });
++      //   }
++      // };
+     },
+     writeBundle: {
+       // After the SSR build is finished, we inspect the Vite manifest for

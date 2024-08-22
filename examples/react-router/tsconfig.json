@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext"],
+    "types": [
+      "./worker-configuration.d.ts",
+      "@cloudflare/workers-types",
+      "@jacob-ebey/vite-bridged-assets-plugin/types",
+      "vite/client"
+    ],
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "isolatedModules": true,
+    "strict": true,
+    "jsx": "react-jsx",
+    "noEmit": true
+  }
+}
