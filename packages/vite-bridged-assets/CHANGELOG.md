@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-bridged-assets-plugin
 
+## 0.0.3
+
+### Patch Changes
+
+- [#8](https://github.com/jacob-ebey/vite-plugins/pull/8) [`dd64943`](https://github.com/jacob-ebey/vite-plugins/commit/dd64943684b955223cfb9997299cdbf9334d396c) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - general code cleanup
+
 ## 0.0.2
 
 ### Patch Changes
