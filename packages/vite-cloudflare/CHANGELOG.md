@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-cloudflare-plugin
 
+## 0.0.5
+
+### Patch Changes
+
+- [#11](https://github.com/jacob-ebey/vite-plugins/pull/11) [`789505b`](https://github.com/jacob-ebey/vite-plugins/commit/789505bf75a54cfd3a6bb6e4b6e0c36dfd97b259) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - negate bad check on durable object property transfer
+
 ## 0.0.4
 
 ### Patch Changes
