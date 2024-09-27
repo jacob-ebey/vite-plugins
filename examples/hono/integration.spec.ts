@@ -4,26 +4,29 @@ import { after, describe, test, before } from "node:test";
 import type { CloudflareDevEnvironment } from "@jacob-ebey/vite-cloudflare-plugin";
 import * as vite from "vite";
 
+const entry = "src/index.ts";
+
 describe("integration", () => {
-  let server: vite.ViteDevServer;
-  let worker: CloudflareDevEnvironment;
+	let server: vite.ViteDevServer;
+	let worker: CloudflareDevEnvironment;
 
-  before(async () => {
-    server = await vite.createServer();
-    worker = server.environments.worker as CloudflareDevEnvironment;
-  });
+	before(async () => {
+		server = await vite.createServer();
+		worker = server.environments.worker as CloudflareDevEnvironment;
+	});
 
-  after(async () => {
-    await server.close();
-  });
+	after(async () => {
+		await server.close();
+	});
 
-  test("should hit hono handler", async () => {
-    const response = await worker.dispatchFetch(
-      new Request("http://test.dev/")
-    );
-    assert.strictEqual(response.status, 200);
+	test("should hit hono handler", async () => {
+		const response = await worker.dispatchFetch(
+			entry,
+			new Request("http://test.dev/"),
+		);
+		assert.strictEqual(response.status, 200);
 
-    const text = await response.text();
-    assert.strictEqual(text, "Hono!!");
-  });
+		const text = await response.text();
+		assert.strictEqual(text, "Hono!!");
+	});
 });
