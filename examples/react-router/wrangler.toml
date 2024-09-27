@@ -20,7 +20,8 @@ SESSION_SECRET = "super-secret"
 [[env.development.durable_objects.bindings]]
 name = "DO_SESSION"
 class_name = "SessionDurableObject"
-script_name = "ssr"
+environment = "ssr"
+script_name = "app/session.ts"
 
 [[env.development.migrations]]
 tag = "v1"
