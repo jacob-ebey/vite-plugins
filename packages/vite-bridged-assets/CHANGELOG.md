@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-bridged-assets-plugin
 
+## 0.0.4
+
+### Patch Changes
+
+- [`bb2bbd6`](https://github.com/jacob-ebey/vite-plugins/commit/bb2bbd60fb5a59e081098c1201731053313d1ef0) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - update to vite 6 stable
+
 ## 0.0.3
 
 ### Patch Changes
