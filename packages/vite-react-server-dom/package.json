@@ -1,6 +1,6 @@
 {
   "name": "@jacob-ebey/vite-react-server-dom",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "description": "",
   "keywords": [],
@@ -42,7 +42,7 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
-    "@mjackson/node-fetch-server": "0.4.1",
+    "@mjackson/node-fetch-server": "0.5.0",
     "@vitejs/plugin-react": "^4.3.4",
     "unplugin-rsc": "0.0.11"
   },
