@@ -1,0 +1,12 @@
+{
+  "include": ["src", "integration.spec.ts"],
+  "exclude": ["fixture"],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "isolatedModules": true,
+    "strict": true,
+    "noEmit": true
+  }
+}
