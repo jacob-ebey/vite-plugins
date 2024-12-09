@@ -1,6 +1,6 @@
 {
   "name": "@jacob-ebey/vite-react-server-dom",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "type": "module",
   "description": "",
   "keywords": [],
@@ -15,21 +15,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./client-api": {
-      "types": "./dist/client-api.d.ts",
-      "default": "./dist/client-api.js"
-    },
-    "./react-manifest": {
-      "types": "./dist/react-manifest.d.ts",
-      "default": "./dist/react-manifest.js"
-    },
     "./references-server": {
       "types": "./dist/references-server.d.ts",
       "default": "./dist/references-server.js"
-    },
-    "./server-api": {
-      "types": "./dist/server-api.d.ts",
-      "default": "./dist/server-api.js"
     },
     "./worker-development": {
       "types": "./dist/worker-development.d.ts",

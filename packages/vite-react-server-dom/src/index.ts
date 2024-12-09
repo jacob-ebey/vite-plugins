@@ -232,7 +232,7 @@ export default function reactServerDom({
     {
       name: "vite-react-server-dom:virtual-react-manifest",
       resolveId(id) {
-        if (id === "@jacob-ebey/vite-react-server-dom/react-manifest") {
+        if (id === "virtual:@jacob-ebey/vite-react-server-dom/react-manifest") {
           return "\0virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
         }
       },
@@ -489,14 +489,14 @@ export default function reactServerDom({
     {
       name: "vite-react-server-dom:virtual-react-server",
       resolveId(id) {
-        if (id === "@jacob-ebey/vite-react-server-dom/server-api") {
+        if (id === "virtual:@jacob-ebey/vite-react-server-dom/server-api") {
           return "\0virtual:@jacob-ebey/vite-react-server-dom/server-api";
         }
       },
       async load(id) {
         if (id === "\0virtual:@jacob-ebey/vite-react-server-dom/server-api") {
           return `
-            export * from "@jacob-ebey/vite-react-server-dom/react-manifest";
+            export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
           `;
         }
       },
@@ -504,7 +504,7 @@ export default function reactServerDom({
     {
       name: "vite-react-server-dom:virtual-react-client",
       resolveId(id) {
-        if (id === "@jacob-ebey/vite-react-server-dom/client-api") {
+        if (id === "virtual:@jacob-ebey/vite-react-server-dom/client-api") {
           return "\0virtual:@jacob-ebey/vite-react-server-dom/client-api";
         }
       },
@@ -540,7 +540,7 @@ export default function reactServerDom({
 
             if (this.environment.name === "client") {
               return `
-								export * from "@jacob-ebey/vite-react-server-dom/react-manifest";
+								export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
 							`;
             }
 
@@ -558,7 +558,7 @@ export default function reactServerDom({
 
               export * from ${JSON.stringify(resolvedCallServerPrerender.id)};
 
-              export * from "@jacob-ebey/vite-react-server-dom/react-manifest";
+              export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
             `;
           }
 
@@ -568,7 +568,7 @@ export default function reactServerDom({
 
           if (this.environment.name === "client") {
             return `
-              export * from "@jacob-ebey/vite-react-server-dom/react-manifest";
+              export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
             `;
           }
 
@@ -596,7 +596,7 @@ export default function reactServerDom({
               );
             }
 
-            export * from "@jacob-ebey/vite-react-server-dom/react-manifest";
+            export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
           `;
         }
       },

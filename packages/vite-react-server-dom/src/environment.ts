@@ -21,7 +21,7 @@ export function workerDevEnvironmentFactory({
     workerScript ||
     fileURLToPath(
       import.meta.resolve(
-        "@jacob-ebey/react-server-dom-vite/worker-development"
+        "@jacob-ebey/vite-react-server-dom/worker-development"
       )
     );
 
