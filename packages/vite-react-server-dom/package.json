@@ -1,0 +1,69 @@
+{
+  "name": "@jacob-ebey/vite-react-server-dom",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "keywords": [],
+  "author": "Jacob Ebey <jacob.ebey@live.com>",
+  "license": "ISC",
+  "files": [
+    "dist",
+    "README.md",
+    "types.d.ts"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client-api": {
+      "types": "./dist/client-api.d.ts",
+      "default": "./dist/client-api.js"
+    },
+    "./react-manifest": {
+      "types": "./dist/react-manifest.d.ts",
+      "default": "./dist/react-manifest.js"
+    },
+    "./references-server": {
+      "types": "./dist/references-server.d.ts",
+      "default": "./dist/references-server.js"
+    },
+    "./server-api": {
+      "types": "./dist/server-api.d.ts",
+      "default": "./dist/server-api.js"
+    },
+    "./worker-development": {
+      "types": "./dist/worker-development.d.ts",
+      "default": "./dist/worker-development.js"
+    },
+    "./worker-production": {
+      "types": "./dist/worker-production.d.ts",
+      "default": "./dist/worker-production.js"
+    },
+    "./worker-shared": {
+      "types": "./dist/worker-shared.d.ts",
+      "default": "./dist/worker-shared.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch"
+  },
+  "peerDependencies": {
+    "@jacob-ebey/react-server-dom-vite": "*",
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "@mjackson/node-fetch-server": "0.4.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "unplugin-rsc": "0.0.11"
+  },
+  "devDependencies": {
+    "@jacob-ebey/react-server-dom-vite": "19.0.0-experimental.13",
+    "@types/node": "22.4.0",
+    "tsup": "8.2.4",
+    "typescript": "5.5.4",
+    "vite": "^6.0.0"
+  }
+}

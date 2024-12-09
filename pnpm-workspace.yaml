@@ -1,2 +1,3 @@
 packages:
   - "packages/vite-bridged-assets"
+  - "packages/vite-react-server-dom"
