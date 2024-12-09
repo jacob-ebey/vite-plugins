@@ -1,3 +1,5 @@
+export const bootstrapModules: string[] = [];
+
 export function callServer(request: Request): Promise<Response> {
   throw new Error("This function should be provided by the bundler.");
 }
