@@ -1,3 +1,4 @@
 packages:
   - "packages/vite-bridged-assets"
+  - "packages/vite-node-worker-environment"
   - "packages/vite-react-server-dom"

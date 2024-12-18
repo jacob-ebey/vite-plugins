@@ -1,0 +1,42 @@
+{
+	"name": "@jacob-ebey/vite-node-worker-environment",
+	"version": "0.0.0",
+	"type": "module",
+	"description": "",
+	"keywords": [],
+	"author": "Jacob Ebey <jacob.ebey@live.com>",
+	"license": "ISC",
+	"files": ["dist", "README.md"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./production": {
+			"types": "./dist/production.d.ts",
+			"default": "./dist/production.js"
+		},
+		"./worker.development": {
+			"types": "./dist/worker.development.d.ts",
+			"default": "./dist/worker.development.js"
+		},
+		"./worker.production": {
+			"types": "./dist/worker.production.d.ts",
+			"default": "./dist/worker.production.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsup",
+		"watch": "tsup --watch"
+	},
+	"peerDependencies": {
+		"vite": "^6.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "22.4.0",
+		"tsup": "8.2.4",
+		"typescript": "5.5.4",
+		"vite": "^6.0.0"
+	}
+}
