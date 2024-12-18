@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-node-worker-environment
 
+## 0.0.2
+
+### Patch Changes
+
+- [`8ad3e67`](https://github.com/jacob-ebey/vite-plugins/commit/8ad3e67cfd5343bf6bca5e38ec1bfcd0bfaacc4f) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - initial release with files...
+
 ## 0.0.1
 
 ### Patch Changes
