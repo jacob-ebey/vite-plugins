@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-react-server-dom
 
+## 0.0.9
+
+### Patch Changes
+
+- [`48956e7`](https://github.com/jacob-ebey/vite-plugins/commit/48956e7635950db9b6f24443b0ca99f9a0bfca38) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - revert back to old plugin for now
+
 ## 0.0.7
 
 ### Patch Changes
