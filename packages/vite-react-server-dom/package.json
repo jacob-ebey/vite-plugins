@@ -15,22 +15,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./references-server": {
-      "types": "./dist/references-server.d.ts",
-      "default": "./dist/references-server.js"
-    },
-    "./worker-development": {
-      "types": "./dist/worker-development.d.ts",
-      "default": "./dist/worker-development.js"
-    },
-    "./worker-production": {
-      "types": "./dist/worker-production.d.ts",
-      "default": "./dist/worker-production.js"
-    },
-    "./worker-shared": {
-      "types": "./dist/worker-shared.d.ts",
-      "default": "./dist/worker-shared.js"
-    },
     "./package.json": "./package.json"
   },
   "scripts": {
