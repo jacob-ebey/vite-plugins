@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-react-server-dom
 
+## 0.0.10
+
+### Patch Changes
+
+- [#23](https://github.com/jacob-ebey/vite-plugins/pull/23) [`8c807df`](https://github.com/jacob-ebey/vite-plugins/commit/8c807df467ffebb01cda0dc0ea46a07b85eef823) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - simplify react server plugin responsibilities
+
 ## 0.0.9
 
 ### Patch Changes
