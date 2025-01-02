@@ -1,45 +1,45 @@
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-
-import { createRequestListener } from "@mjackson/node-fetch-server";
-import react from "@vitejs/plugin-react";
+import react, { type Options as ReactOptions } from "@vitejs/plugin-react";
 import { clientTransform, serverTransform } from "unplugin-rsc";
 import * as vite from "vite";
 
-import {
-  type FetchableDevEnvironment,
-  workerDevEnvironmentFactory,
-} from "./environment.js";
-
-export type { FetchableDevEnvironment };
-
-export type FrameworkEntries = {
-  browser: string;
-  prerender: string;
-  server: string;
-};
-
-export type FrameworkCallServerConfig = {
-  prerender: string;
-};
-
-export type FrameworkOptions = {
-  browserReferences: string;
-  callServerPrerender: string;
-  entries: FrameworkEntries;
-};
-
-export default function reactServerDom({
-  browserReferences,
-  callServerPrerender,
-  entries,
-}: FrameworkOptions): vite.PluginOption {
+export default function reactServerDOM({
+  browserEnvironment,
+  serverEnvironments: _serverEnvironments,
+  ssrEnvironments: _ssrEnvironments,
+  reactOptions,
+  runtime,
+}: {
+  browserEnvironment: string;
+  serverEnvironments: string[];
+  ssrEnvironments: string[];
+  reactOptions?: ReactOptions;
+  runtime: {
+    browser: {
+      importFrom: string;
+      importServer?: string;
+    };
+    ssr: {
+      importFrom: string;
+      importServer?: string;
+    };
+    server: {
+      importFrom: string;
+      importClient?: string;
+      importServer?: string;
+    };
+  };
+}): vite.PluginOption {
   let env: vite.ConfigEnv;
-  let devServerURL: URL | undefined;
-  let browserOutput: vite.Rollup.RollupOutput | undefined;
+  const serverEnvironments = new Set(_serverEnvironments);
+  const ssrEnvironments = new Set(_ssrEnvironments);
+
+  const clientEntries = new Set<string>();
   const clientModules = new Map<string, string>();
   const serverModules = new Map<string, string>();
+  let browserOutput: vite.Rollup.RollupOutput | undefined;
 
   function generateId(
     filename: string,
@@ -69,20 +69,23 @@ export default function reactServerDom({
   }
 
   return [
-    react(),
+    react(reactOptions),
     {
-      name: "vite-react-server-dom:config",
-      enforce: "pre",
-      config(_, _env) {
+      name: "react-server-dom",
+      enforce: "post",
+      config(userConfig, _env) {
         env = _env;
 
-        return {
+        return vite.mergeConfig<vite.UserConfig, vite.UserConfig>(userConfig, {
           builder: {
+            sharedConfigBuild: true,
+            sharedPlugins: true,
             async buildApp(builder) {
               let needsRebuild = true;
               let isFirstBuild = true;
-              let prerenderOutput!: vite.Rollup.RollupOutput;
-              let serverOutput!: vite.Rollup.RollupOutput;
+
+              let serverOutputs!: vite.Rollup.RollupOutput[];
+              let ssrOutputs!: vite.Rollup.RollupOutput[];
 
               while (needsRebuild) {
                 needsRebuild = false;
@@ -90,33 +93,33 @@ export default function reactServerDom({
                 const lastClientModulesCount = clientModules.size;
                 const lastServerModulesCount = serverModules.size;
 
-                serverOutput = (await builder.build(
-                  builder.environments.server
-                )) as vite.Rollup.RollupOutput;
+                serverOutputs = (await Promise.all(
+                  _serverEnvironments.map((env) =>
+                    builder.build(builder.environments[env])
+                  )
+                )) as vite.Rollup.RollupOutput[];
 
                 const clientModuleFilenames = clientModules.keys();
-                builder.environments.client.config.build.rollupOptions.input = [
+                builder.environments[
+                  browserEnvironment
+                ].config.build.rollupOptions.input = [
                   ...new Set([
-                    ...((builder.environments.client.config.build.rollupOptions
-                      .input as string[]) ?? []),
+                    ...rollupInputsToArray(
+                      builder.environments[browserEnvironment].config.build
+                        .rollupOptions.input
+                    ),
                     ...clientModuleFilenames,
                   ]),
                 ];
-                builder.environments.prerender.config.build.rollupOptions.input =
-                  [
-                    ...new Set([
-                      ...((builder.environments.prerender.config.build
-                        .rollupOptions.input as string[]) ?? []),
-                      ...clientModuleFilenames,
-                    ]),
-                  ];
 
-                const [_browserOutput, _prerenderOutput] = await Promise.all([
-                  builder.build(builder.environments.client),
-                  builder.build(builder.environments.prerender),
+                const [clientBuild, ...ssrBuilds] = await Promise.all([
+                  builder.build(builder.environments[browserEnvironment]),
+                  ..._ssrEnvironments.map((env) =>
+                    builder.build(builder.environments[env])
+                  ),
                 ]);
-                browserOutput = _browserOutput as vite.Rollup.RollupOutput;
-                prerenderOutput = _prerenderOutput as vite.Rollup.RollupOutput;
+                browserOutput = clientBuild as vite.Rollup.RollupOutput;
+                ssrOutputs = ssrBuilds as vite.Rollup.RollupOutput[];
 
                 if (
                   (isFirstBuild &&
@@ -129,293 +132,280 @@ export default function reactServerDom({
                 isFirstBuild = false;
               }
 
-              for (const [output, outDir] of [
-                [
-                  prerenderOutput,
-                  builder.environments.prerender.config.build.outDir,
-                ],
-                [serverOutput, builder.environments.server.config.build.outDir],
-              ] as const) {
-                const manifestAsset = output.output.find(
-                  (asset) => asset.fileName === ".vite/ssr-manifest.json"
-                );
-                if (!manifestAsset || manifestAsset.type !== "asset")
-                  throw new Error("could not find manifest");
-                const manifest = JSON.parse(manifestAsset.source as string);
-
-                const processed = new Set<string>();
-                for (const assets of Object.values(manifest) as string[][]) {
-                  for (const asset of assets) {
-                    const fullPath = path.join(outDir, asset.slice(1));
-
-                    if (asset.endsWith(".js") || processed.has(fullPath))
-                      continue;
-                    processed.add(fullPath);
-
-                    if (!fs.existsSync(fullPath)) continue;
-
-                    const relative = path.relative(outDir, fullPath);
-                    fs.renameSync(
-                      fullPath,
-                      path.join(
-                        builder.environments.client.config.build.outDir,
-                        relative
-                      )
-                    );
-                  }
-                }
+              const clientOutDir =
+                builder.environments[browserEnvironment].config.build.outDir;
+              for (let i = 0; i < serverOutputs.length; i++) {
+                const output = serverOutputs[i];
+                const env = _serverEnvironments[i];
+                const outDir = builder.environments[env].config.build.outDir;
+                moveStaticAssets(output, outDir, clientOutDir);
+              }
+              for (let i = 0; i < ssrOutputs.length; i++) {
+                const output = ssrOutputs[i];
+                const env = _ssrEnvironments[i];
+                const outDir = builder.environments[env].config.build.outDir;
+                moveStaticAssets(output, outDir, clientOutDir);
               }
             },
-            sharedConfigBuild: true,
-            sharedPlugins: true,
           },
-          environments: {
-            client: {
-              consumer: "client",
-              build: {
-                outDir: "dist/browser",
-                manifest: true,
-                ssrManifest: true,
-                rollupOptions: {
-                  preserveEntrySignatures: "exports-only",
-                  input: [entries.browser],
-                },
-              },
-            },
-            prerender: {
-              consumer: "server",
-              build: {
-                outDir: "dist/prerender",
-                emitAssets: true,
-                ssrManifest: true,
-                rollupOptions: {
-                  input: [entries.prerender],
-                },
-              },
-              dev: {
-                createEnvironment: workerDevEnvironmentFactory(),
-              },
-            },
-            server: {
-              consumer: "server",
-              build: {
-                outDir: "dist/server",
-                emitAssets: true,
-                ssrManifest: true,
-                rollupOptions: {
-                  input: [entries.server],
-                },
-              },
-              dev: {
-                createEnvironment: workerDevEnvironmentFactory(),
-              },
-              resolve: {
-                conditions: ["react-server"],
-                externalConditions: ["react-server"],
-              },
-            },
-          },
-        };
+        });
       },
-      async transform(code, id) {
-        if (
-          env.command === "serve" &&
-          id === (await this.resolve(entries.browser))?.id
-        ) {
+      configEnvironment(name, userConfig) {
+        if (name === browserEnvironment) {
+          return vite.mergeConfig<
+            vite.EnvironmentOptions,
+            vite.EnvironmentOptions
+          >(userConfig, {
+            build: {
+              manifest: true,
+              rollupOptions: {
+                preserveEntrySignatures: "exports-only",
+              },
+            },
+          });
+        }
+
+        if (serverEnvironments.has(name)) {
+          return vite.mergeConfig<
+            vite.EnvironmentOptions,
+            vite.EnvironmentOptions
+          >(userConfig, {
+            build: {
+              emitAssets: true,
+              ssrManifest: true,
+              rollupOptions: {
+                preserveEntrySignatures: "exports-only",
+              },
+            },
+            resolve: {
+              conditions: ["react-server"],
+            },
+          });
+        }
+
+        if (ssrEnvironments.has(name)) {
+          return vite.mergeConfig<
+            vite.EnvironmentOptions,
+            vite.EnvironmentOptions
+          >(userConfig, {
+            build: {
+              emitAssets: true,
+              ssrManifest: true,
+              rollupOptions: {
+                preserveEntrySignatures: "exports-only",
+              },
+            },
+          });
+        }
+      },
+      configResolved(config) {
+        const environment = config.environments[browserEnvironment];
+        if (!environment)
+          throw new Error(`Client environment ${env} not found`);
+        const inputs = rollupInputsToArray(
+          environment.build.rollupOptions.input
+        );
+        for (const input of inputs) {
+          clientEntries.add(path.resolve(input));
+        }
+      },
+      transform(code, id) {
+        let result = code;
+        const ext = id.slice(id.lastIndexOf("."));
+        if (EXTENSIONS_TO_TRANSFORM.has(ext)) {
+          if (serverEnvironments.has(this.environment.name)) {
+            const transformed = serverTransform(code, id, {
+              id: generateId,
+              importClient:
+                runtime.server.importClient || "registerClientReference",
+              importFrom: runtime.server.importFrom,
+              importServer:
+                runtime.server.importServer || "registerServerReference",
+            });
+            result = transformed.code;
+          } else if (ssrEnvironments.has(this.environment.name)) {
+            const transformed = clientTransform(
+              code,
+              id,
+              this.environment.name === browserEnvironment
+                ? {
+                    id: generateId,
+                    importFrom: runtime.browser.importFrom,
+                    importServer:
+                      runtime.browser.importServer || "createServerReference",
+                  }
+                : {
+                    id: generateId,
+                    importFrom: runtime.ssr.importFrom,
+                    importServer:
+                      runtime.ssr.importServer || "createServerReference",
+                  }
+            );
+            result = transformed.code;
+          }
+        }
+
+        return result;
+      },
+      resolveId(id) {
+        if (id === "virtual:browser-entry") {
+          return "\0virtual:browser-entry";
+        }
+        if (id === "virtual:react-manifest") {
+          return "\0virtual:react-manifest";
+        }
+      },
+      async load(id) {
+        if (id === "\0virtual:browser-entry") {
+          const inputs = rollupInputsToArray(
+            this.environment.config.build.rollupOptions.input
+          );
+
+          const resolved = await this.resolve(inputs[0]);
+          if (!resolved) {
+            throw new Error(`Could not resolve ${inputs[0]}`);
+          }
+
           return `${react.preambleCode.replace(
             "__BASE__",
             this.environment.config.base
-          )};${code}`;
+          )};import(${JSON.stringify(resolved.id)});`;
         }
-      },
-    },
-    {
-      name: "vite-react-server-dom:virtual-react-manifest",
-      resolveId(id) {
-        if (id === "virtual:@jacob-ebey/vite-react-server-dom/react-manifest") {
-          return "\0virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-        }
-      },
-      load(id) {
-        if (
-          id === "\0virtual:@jacob-ebey/vite-react-server-dom/react-manifest"
-        ) {
-          if (env.command === "serve") {
-            if (this.environment.name !== "server") {
-              return `
-                export const manifest = {
-                  resolveClientReference([id, name]) {
-                    let modPromise;
-                    return {
-                      preload: async () => {
-                        if (modPromise) {
-                          return modPromise;
-                        }
 
-                        modPromise = import(/* @vite-ignore */ id);
-                        return modPromise
-                          .then((mod) => {
-                            modPromise.mod = mod;
-                          })
-                          .catch((error) => {
-                            modPromise.error = error;
-                          });
-                      },
-                      get: () => {
-                        if (!modPromise) {
-                          throw new Error(\`Module "\${id}" not preloaded\`);
-                        }
-                        if ("error" in modPromise) {
-                          throw modPromise.error;
-                        }
-                        return modPromise.mod[name];
-                      },
-                    };
+        if (id === "\0virtual:react-manifest") {
+          if (env.command === "serve") {
+            if (serverEnvironments.has(this.environment.name)) {
+              return `
+            export const manifest = {
+              resolveClientReferenceMetadata(clientReference) {
+                const split = clientReference.$$id.split("#");
+                return [split[0], split.slice(1).join("#")];
+              },
+              resolveServerReference(serverReference) {
+                const [id, ...rest] = serverReference.split("#");
+                const name = rest.join("#");
+                let modPromise;
+                return {
+                  preload: async () => {
+                    if (modPromise) {
+                      return modPromise;
+                    }
+
+                    modPromise = import(/* @vite-ignore */ id);
+                    return modPromise
+                      .then((mod) => {
+                        modPromise.mod = mod;
+                      })
+                      .catch((error) => {
+                        modPromise.error = error;
+                      });
+                  },
+                  get: () => {
+                    if (!modPromise) {
+                      throw new Error(\`Module "\${id}" not preloaded\`);
+                    }
+                    if ("error" in modPromise) {
+                      throw modPromise.error;
+                    }
+                    return modPromise.mod[name];
                   },
                 };
-              `;
+              },
+            };
+          `;
             }
 
             return `
-              export const manifest = {
-                resolveClientReferenceMetadata(clientReference) {
-                  const split = clientReference.$$id.split("#");
-                  return [split[0], split.slice(1).join("#")];
-                },
-                resolveServerReference(serverReference) {
-                  const [id, ...rest] = serverReference.split("#");
-                  const name = rest.join("#");
-                  let modPromise;
-                  return {
-                    preload: async () => {
-                      if (modPromise) {
-                        return modPromise;
-                      }
+            ${
+              ssrEnvironments.has(this.environment.name)
+                ? `export const bootstrapModules = [${JSON.stringify(
+                    "/@id/__x00__virtual:browser-entry"
+                  )}];`
+                : []
+            }
 
-                      modPromise = import(/* @vite-ignore */ id);
-                      return modPromise
-                        .then((mod) => {
-                          modPromise.mod = mod;
-                        })
-                        .catch((error) => {
-                          modPromise.error = error;
-                        });
-                    },
-                    get: () => {
-                      if (!modPromise) {
-                        throw new Error(\`Module "\${id}" not preloaded\`);
-                      }
-                      if ("error" in modPromise) {
-                        throw modPromise.error;
-                      }
-                      return modPromise.mod[name];
-                    },
-                  };
-                },
-              };
-            `;
+            export const manifest = {
+              resolveClientReference([id, name]) {
+                let modPromise;
+                return {
+                  preload: async () => {
+                    if (modPromise) {
+                      return modPromise;
+                    }
+
+                    modPromise = import(/* @vite-ignore */ id);
+                    return modPromise
+                      .then((mod) => {
+                        modPromise.mod = mod;
+                      })
+                      .catch((error) => {
+                        modPromise.error = error;
+                      });
+                  },
+                  get: () => {
+                    if (!modPromise) {
+                      throw new Error(\`Module "\${id}" not preloaded\`);
+                    }
+                    if ("error" in modPromise) {
+                      throw modPromise.error;
+                    }
+                    return modPromise.mod[name];
+                  },
+                };
+              },
+            };
+          `;
           }
 
-          if (this.environment.name === "client") {
+          if (this.environment.name === browserEnvironment) {
             return `
-              export const manifest = {
-                resolveClientReference([id, name, ...chunks]) {
-                  let modPromise;
-                  return {
-                    preload: async () => {
-                      if (modPromise) {
-                        return modPromise;
-                      }
+            export const manifest = {
+              resolveClientReference([id, name, ...chunks]) {
+                let modPromise;
+                return {
+                  preload: async () => {
+                    if (modPromise) {
+                      return modPromise;
+                    }
 
-											for (const chunk of chunks) {
-												import(/* @vite-ignore */ chunk);
-											}
+                    for (const chunk of chunks) {
+                      import(/* @vite-ignore */ chunk);
+                    }
 
-                      modPromise = import(/* @vite-ignore */ chunks[0]);
-                      return modPromise
-                        .then((mod) => {
-                          modPromise.mod = mod;
-                        })
-                        .catch((error) => {
-                          modPromise.error = error;
-                        });
-                    },
-                    get: () => {
-                      if (!modPromise) {
-                        throw new Error(\`Module "\${id}" not preloaded\`);
-                      }
-                      if ("error" in modPromise) {
-                        throw modPromise.error;
-                      }
-                      return modPromise.mod[name];
-                    },
-                  };
-                },
-              };
-            `;
+                    modPromise = import(/* @vite-ignore */ chunks[0]);
+                    return modPromise
+                      .then((mod) => {
+                        modPromise.mod = mod;
+                      })
+                      .catch((error) => {
+                        modPromise.error = error;
+                      });
+                  },
+                  get: () => {
+                    if (!modPromise) {
+                      throw new Error(\`Module "\${id}" not preloaded\`);
+                    }
+                    if ("error" in modPromise) {
+                      throw modPromise.error;
+                    }
+                    return modPromise.mod[name];
+                  },
+                };
+              },
+            };
+          `;
           }
 
-          if (this.environment.name !== "server") {
+          if (serverEnvironments.has(this.environment.name)) {
+            const manifestAsset = browserOutput?.output.find(
+              (asset) => asset.fileName === ".vite/manifest.json"
+            );
+            const manifestSource =
+              manifestAsset?.type === "asset" &&
+              (manifestAsset.source as string);
+            const manifest = JSON.parse(manifestSource || "{}");
+
             return `
-              const clientModules = {
-                ${Array.from(clientModules)
-                  .map(([filename, hash]) => {
-                    return `${JSON.stringify(
-                      hash
-                    )}: () => import(${JSON.stringify(filename)}),`;
-                  })
-                  .join("  \n")}
-              };
-
-              export const manifest = {
-                resolveClientReference([id, name, ...chunks]) {
-                  let modPromise;
-                  return {
-                    preload: async () => {
-                      if (modPromise) {
-                        return modPromise;
-                      }
-
-                      modPromise = clientModules[id]();
-                      return modPromise
-                        .then((mod) => {
-                          modPromise.mod = mod;
-                        })
-                        .catch((error) => {
-                          modPromise.error = error;
-                        });
-                    },
-                    get: () => {
-                      if (!modPromise) {
-                        throw new Error(\`Module "\${id}" not preloaded\`);
-                      }
-                      if ("error" in modPromise) {
-                        throw modPromise.error;
-                      }
-                      return modPromise.mod[name];
-                    },
-                  };
-                },
-              };
-            `;
-          }
-
-          const ssrManifestAsset = browserOutput?.output.find(
-            (asset) => asset.fileName === ".vite/ssr-manifest.json"
-          );
-          const ssrManifestSource =
-            ssrManifestAsset?.type === "asset" &&
-            (ssrManifestAsset.source as string);
-          const ssrManifest = JSON.parse(ssrManifestSource || "{}");
-
-          const manifestAsset = browserOutput?.output.find(
-            (asset) => asset.fileName === ".vite/manifest.json"
-          );
-          const manifestSource =
-            manifestAsset?.type === "asset" && (manifestAsset.source as string);
-          const manifest = JSON.parse(manifestSource || "{}");
-
-          return `
             const serverModules = {
               ${Array.from(serverModules)
                 .map(([filename, hash]) => {
@@ -483,240 +473,92 @@ export default function reactServerDom({
               },
             };
           `;
-        }
-      },
-    },
-    {
-      name: "vite-react-server-dom:virtual-react-server",
-      resolveId(id) {
-        if (id === "virtual:@jacob-ebey/vite-react-server-dom/server-api") {
-          return "\0virtual:@jacob-ebey/vite-react-server-dom/server-api";
-        }
-      },
-      async load(id) {
-        if (id === "\0virtual:@jacob-ebey/vite-react-server-dom/server-api") {
-          return `
-            export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-          `;
-        }
-      },
-    },
-    {
-      name: "vite-react-server-dom:virtual-react-client",
-      resolveId(id) {
-        if (id === "virtual:@jacob-ebey/vite-react-server-dom/client-api") {
-          return "\0virtual:@jacob-ebey/vite-react-server-dom/client-api";
-        }
-      },
-      async load(id) {
-        if (id === "\0virtual:@jacob-ebey/vite-react-server-dom/client-api") {
-          const browserEntry = await this.resolve(entries.browser);
-          if (!browserEntry) {
-            throw new Error("could not resolve browser entry");
           }
 
-          if (env.command === "build") {
-            const bootstrapModules: string[] = [];
-            if (browserOutput) {
-              const manifestAsset = browserOutput?.output.find(
-                (asset) => asset.fileName === ".vite/manifest.json"
-              );
-              const manifestSource =
-                manifestAsset?.type === "asset" &&
-                (manifestAsset.source as string);
-              const manifest = JSON.parse(manifestSource || "{}");
-
-              bootstrapModules.push(
-                ...collectChunks(
-                  this.environment.config.base,
-                  path.relative(
-                    path.resolve(this.environment.config.root),
-                    browserEntry.id
-                  ),
-                  manifest
-                )
-              );
-            }
-
-            if (this.environment.name === "client") {
-              return `
-								export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-							`;
-            }
-
-            const resolvedCallServerPrerender = await this.resolve(
-              callServerPrerender
+          const bootstrapModules: string[] = [];
+          if (browserOutput) {
+            const manifestAsset = browserOutput?.output.find(
+              (asset) => asset.fileName === ".vite/manifest.json"
             );
-            if (!resolvedCallServerPrerender) {
-              throw new Error("could not resolve call server prerender");
-            }
+            const manifestSource =
+              manifestAsset?.type === "asset" &&
+              (manifestAsset.source as string);
+            const manifest = JSON.parse(manifestSource || "{}");
 
-            return `
-              export const bootstrapModules = ${JSON.stringify([
-                ...new Set(bootstrapModules),
-              ])};
-
-              export * from ${JSON.stringify(resolvedCallServerPrerender.id)};
-
-              export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-            `;
-          }
-
-          if (!devServerURL) {
-            throw new Error("could not resolve dev server URL");
-          }
-
-          if (this.environment.name === "client") {
-            return `
-              export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-            `;
+            bootstrapModules.push(
+              ...collectChunks(
+                this.environment.config.base,
+                path.relative(
+                  path.resolve(this.environment.config.root),
+                  Array.from(clientEntries)[0]
+                ),
+                manifest
+              )
+            );
           }
 
           return `
-            export const bootstrapModules = ${JSON.stringify([
-              browserEntry.id,
-            ])};
-
-            const devServerURL = ${JSON.stringify(devServerURL.href)};
-            
-            export function callServer(request) {
-              const hasBody = request.method !== "GET" && request.method !== "HEAD" && !!request.body;
-
-              const headers = new Headers(request.headers);
-              headers.set("x-vite-call-server", request.url);
-
-              return fetch(
-                new Request(devServerURL, {
-                  body: hasBody ? request.body : null,
-                  headers,
-                  method: request.method,
-                  signal: request.signal,
-                  ...(hasBody ? { duplex: "half" } : undefined),
-                })
-              );
-            }
-
-            export * from "virtual:@jacob-ebey/vite-react-server-dom/react-manifest";
-          `;
-        }
-      },
-      configureServer(server) {
-        const serverEnvironment = server.environments
-          .server as FetchableDevEnvironment;
-
-        server.httpServer?.once("listening", () => {
-          const address = server.httpServer?.address();
-          if (typeof address !== "object" || !address) {
-            throw new Error("expected address to be an object");
-          }
-
-          let host: string;
-          if (address.family === "IPv6") {
-            host = `[${address.address}]`;
-          } else {
-            host = address.address === "::" ? "localhost" : address.address;
-          }
-
-          devServerURL = new URL(`http://${host}:${address.port}`);
-        });
-
-        server.middlewares.use((req, res, next) => {
-          const callServerOriginalURL = Array.isArray(
-            req.headers["x-vite-call-server"]
-          )
-            ? req.headers["x-vite-call-server"][0]
-            : req.headers["x-vite-call-server"];
-          if (!callServerOriginalURL) {
-            return next();
-          }
-
-          createRequestListener((request) => {
-            const hasBody =
-              request.method !== "GET" &&
-              request.method !== "HEAD" &&
-              !!request.body;
-
-            const headers = new Headers(request.headers);
-            headers.delete("x-vite-call-server");
-
-            return serverEnvironment.dispatchFetch(
-              entries.server,
-              new Request(callServerOriginalURL, {
-                body: hasBody ? request.body : null,
-                headers,
-                method: request.method,
-                signal: request.signal,
-                ...(hasBody ? { duplex: "half" } : undefined),
+          export const bootstrapModules = ${JSON.stringify([
+            ...new Set(bootstrapModules),
+          ])};
+              
+          const clientModules = {
+            ${Array.from(clientModules)
+              .map(([filename, hash]) => {
+                return `${JSON.stringify(hash)}: () => import(${JSON.stringify(
+                  filename
+                )}),`;
               })
-            );
-          })(req, res);
-        });
-      },
-    },
-    {
-      name: "vite-react-server-dom:react-transform",
-      async transform(code, id) {
-        const ext = id.slice(id.lastIndexOf("."));
-        if (
-          ![
-            ".js",
-            ".jsx",
-            ".cjs",
-            ".cjsx",
-            ".mjs",
-            ".mjsx",
-            ".ts",
-            ".tsx",
-            ".cts",
-            ".ctsx",
-            ".mts",
-            ".mtsx",
-          ].includes(ext)
-        ) {
-          return;
+              .join("  \n")}
+          };
+
+          export const manifest = {
+            resolveClientReference([id, name, ...chunks]) {
+              let modPromise;
+              return {
+                preload: async () => {
+                  if (modPromise) {
+                    return modPromise;
+                  }
+
+                  modPromise = clientModules[id]();
+                  return modPromise
+                    .then((mod) => {
+                      modPromise.mod = mod;
+                    })
+                    .catch((error) => {
+                      modPromise.error = error;
+                    });
+                },
+                get: () => {
+                  if (!modPromise) {
+                    throw new Error(\`Module "\${id}" not preloaded\`);
+                  }
+                  if ("error" in modPromise) {
+                    throw modPromise.error;
+                  }
+                  return modPromise.mod[name];
+                },
+              };
+            },
+          };
+        `;
         }
-
-        if (this.environment.name === "server") {
-          return serverTransform(code, id, {
-            id: generateId,
-            importClient: "registerClientReference",
-            importFrom: "@jacob-ebey/vite-react-server-dom/references-server",
-            importServer: "registerServerReference",
-          });
-        }
-
-        return clientTransform(code, id, {
-          id: generateId,
-          importFrom:
-            this.environment.name === "client"
-              ? (browserReferences &&
-                  (await this.resolve(browserReferences))?.id) ||
-                "@jacob-ebey/react-server-dom-vite/client"
-              : "@jacob-ebey/react-server-dom-vite/client",
-          importServer: "createServerReference",
-        });
-      },
-    },
-    {
-      name: "vite-react-server-dom:dev-server",
-      configureServer(server) {
-        const prerenderEnvironment = server.environments
-          .prerender as FetchableDevEnvironment;
-
-        return () => {
-          server.middlewares.use((req, _, next) => {
-            req.url = req.originalUrl;
-            next();
-          });
-          server.middlewares.use(
-            createRequestListener((request) =>
-              prerenderEnvironment.dispatchFetch(entries.prerender, request)
-            )
-          );
-        };
       },
     },
   ];
+}
+
+function rollupInputsToArray(
+  rollupInputs: vite.Rollup.InputOption | undefined
+) {
+  return Array.isArray(rollupInputs)
+    ? rollupInputs
+    : typeof rollupInputs === "string"
+    ? [rollupInputs]
+    : rollupInputs
+    ? Object.values(rollupInputs)
+    : [];
 }
 
 function collectChunks(
@@ -734,3 +576,46 @@ function collectChunks(
 
   return Array.from(collected);
 }
+
+function moveStaticAssets(
+  output: vite.Rollup.RollupOutput,
+  outDir: string,
+  clientOutDir: string
+) {
+  const manifestAsset = output.output.find(
+    (asset) => asset.fileName === ".vite/ssr-manifest.json"
+  );
+  if (!manifestAsset || manifestAsset.type !== "asset")
+    throw new Error("could not find manifest");
+  const manifest = JSON.parse(manifestAsset.source as string);
+
+  const processed = new Set<string>();
+  for (const assets of Object.values(manifest) as string[][]) {
+    for (const asset of assets) {
+      const fullPath = path.join(outDir, asset.slice(1));
+
+      if (asset.endsWith(".js") || processed.has(fullPath)) continue;
+      processed.add(fullPath);
+
+      if (!fs.existsSync(fullPath)) continue;
+
+      const relative = path.relative(outDir, fullPath);
+      fs.renameSync(fullPath, path.join(clientOutDir, relative));
+    }
+  }
+}
+
+const EXTENSIONS_TO_TRANSFORM = new Set([
+  ".js",
+  ".jsx",
+  ".cjs",
+  ".cjsx",
+  ".mjs",
+  ".mjsx",
+  ".ts",
+  ".tsx",
+  ".cts",
+  ".ctsx",
+  ".mts",
+  ".mtsx",
+]);
