@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-react-server-dom
 
+## 0.0.11
+
+### Patch Changes
+
+- [#25](https://github.com/jacob-ebey/vite-plugins/pull/25) [`554e4b2`](https://github.com/jacob-ebey/vite-plugins/commit/554e4b20dc4c2378c070fa2e1ca83e1cc117f176) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - only parse if nessesary
+
 ## 0.0.10
 
 ### Patch Changes
