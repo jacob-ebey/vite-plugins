@@ -212,7 +212,10 @@ export default function reactServerDOM({
       transform(code, id) {
         let result = code;
         const ext = id.slice(id.lastIndexOf("."));
-        if (EXTENSIONS_TO_TRANSFORM.has(ext)) {
+        if (
+          EXTENSIONS_TO_TRANSFORM.has(ext) &&
+          code.match(/['"]use (client|server)['"]/)
+        ) {
           if (serverEnvironments.has(this.environment.name)) {
             const transformed = serverTransform(code, id, {
               id: generateId,
