@@ -1,5 +1,11 @@
 # @jacob-ebey/vite-react-server-dom
 
+## 0.0.12
+
+### Patch Changes
+
+- [#27](https://github.com/jacob-ebey/vite-plugins/pull/27) [`db891dd`](https://github.com/jacob-ebey/vite-plugins/commit/db891dd9f7481b457d400591b1a7928306eb944e) Thanks [@jacob-ebey](https://github.com/jacob-ebey)! - transform the browser build
+
 ## 0.0.11
 
 ### Patch Changes
