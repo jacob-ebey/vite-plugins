@@ -214,7 +214,7 @@ export default function reactServerDOM({
         const ext = id.slice(id.lastIndexOf("."));
         if (
           EXTENSIONS_TO_TRANSFORM.has(ext) &&
-          code.match(/['"]use (client|server)['"]/)
+          code.match(/['"]use (client|server)['"]/g)
         ) {
           if (serverEnvironments.has(this.environment.name)) {
             const transformed = serverTransform(code, id, {
@@ -226,7 +226,10 @@ export default function reactServerDOM({
                 runtime.server.importServer || "registerServerReference",
             });
             result = transformed.code;
-          } else if (ssrEnvironments.has(this.environment.name)) {
+          } else if (
+            this.environment.name === browserEnvironment ||
+            ssrEnvironments.has(this.environment.name)
+          ) {
             const transformed = clientTransform(
               code,
               id,
